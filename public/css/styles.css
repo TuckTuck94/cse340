@@ -1,6 +1,7 @@
 /*** Box Model ***/
+@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
 :root {
-  --font: 'Arial';
+  --font: 'Roboto', sans-serif;
   --color-bg: #841617;
   --color-fg: #fdf9d8;
   --border-corner: .4rem;
