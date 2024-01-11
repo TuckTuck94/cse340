@@ -1,10 +1,10 @@
 /*** Box Model ***/
-@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
+@import url('http://fonts.googleapis.com/css?family=Lato');
 :root {
-  --font: 'Roboto', sans-serif;
   --color-bg: #841617;
   --color-fg: #fdf9d8;
   --border-corner: .4rem;
+  --font: 'Lato', sans-serif;
 }
 
 * {
@@ -79,18 +79,18 @@ main > h2, #reviews h2, #upgrades h2 {
 }
 
 #marty img {
-  width: 100%;
   height: auto;
+  width: 100%;
 }
 
 #martyMsg {
+  background-color: #000000;
+  color: var(--color-fg);
+  border-radius: var(--border-corner);
   position: absolute;
   top: 0;
   padding: .8rem;
   opacity: 75%;
-  background-color: #000000;
-  color: var(--color-fg);
-  border-radius: var(--border-corner);
 }
 
 #martyMsg ul {
@@ -100,10 +100,11 @@ main > h2, #reviews h2, #upgrades h2 {
 }
 
 #martyMsg button {
-  padding: .8rem 3rem;
-  border: none;
   background-color: var(--color-bg);
   border-radius: var(--border-corner);
+  padding: .8rem 3rem;
+  border: none;
+  
 }
 /*** Reviews Section ***/
 #reviewing {
@@ -142,9 +143,9 @@ main > h2, #reviews h2, #upgrades h2 {
   position: relative;
 }
 
-.upgImg {
+.upgradeimage {
   position: absolute; 
-  top: .8rem; 
+  top: .3rem; 
   right: 0; 
   left: 0;
   margin: 0 auto; 
