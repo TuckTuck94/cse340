@@ -1,7 +1,6 @@
 const invModel = require("../models/inventory-model")
 const Util = {}
 
-
 /* ************************
  * Constructs the nav HTML unordered list
  ************************** */
@@ -24,8 +23,6 @@ Util.getNav = async function (req, res, next) {
   list += "</ul>"
   return list
 }
-
-module.exports = Util
 
 /* **************************************
 * Build the classification view HTML
@@ -61,8 +58,47 @@ Util.buildClassificationGrid = async function(data){
 }
 
 /* ****************************************
+* Build the inventory view HTML
+ **************************************** */
+Util.buildDetailGrid = async function(data) {
+  let grid
+  if(data.length > 0) {
+    grid = '<section id="detail-grid">'
+    data.forEach(vehicle => {
+      grid += "<h1>" + vehicle.inv_model + "</h2>"
+      grid += "<img src=" + vehicle.inv_image + " alt=\"Image of " + vehicle.inv_make + " " + vehicle.inv_model + " on CSE Motors\" />"
+      grid += "<table>"
+      grid += "<tr>"
+      grid += "<td>Color</td>"
+      grid += "<td>" + vehicle.inv_color + "</td>"
+      grid += "</tr>"
+      grid += "<tr>"
+      grid += "<td>Mileage</td>"
+      grid += "<td>" + new Intl.NumberFormat("en-US").format(vehicle.inv_miles) + "</td>"
+      grid += "</tr>"
+      grid += "<tr>"
+      grid += "<td>Description</td>"
+      grid += "<td>" + vehicle.inv_description + "</td>"
+      grid += "</tr>"
+      grid += "<tr>"
+      grid += "<td>Price</td>"
+      grid += "<td>$" + new Intl.NumberFormat("en-US").format(vehicle.inv_price) + "</td>"
+      grid += "</tr>"
+      grid += "</table>"
+    })
+    grid += "</section>"
+  } else { 
+    grid += '<p class="notice">Sorry, no matching vehicle could be found.</p>'
+  }
+  return grid
+}
+
+/* ****************************************
  * Middleware For Handling Errors
  * Wrap other function in this for 
  * General Error Handling
  **************************************** */
 Util.handleErrors = fn => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next)
+
+
+module.exports = Util
