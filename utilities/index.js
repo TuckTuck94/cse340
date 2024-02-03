@@ -57,6 +57,32 @@ Util.buildClassificationGrid = async function(data){
   return grid
 }
 
+/* **************************************
+* Build the details view HTML
+* ************************************ */
+Util.buildVehicleDisplay = async function(data) {
+  let display
+  if (data.length > 0) {
+    display = '<div id="vehicle-display">'
+    display += '<img id="vehicle-details-image" src=" ' + data[0].inv_image + '" ' 
+            + 'alt="Image of '+ data[0].inv_make + ' ' + data[0].inv_model 
+            +' on CSE Motors">'
+    display += '<div class="vehicle-details">'
+    display += '<h2>' + data[0].inv_make + ' ' + data[0].inv_model + " Details" + '</h2>'
+    display += '<div id="vehicle-details-price"><p>Price: $'
+            + new Intl.NumberFormat('en-US').format(data[0].inv_price) + '</p></div>'
+    display += '<div id="vehicle-details-description"><p>Description: ' + " " + data[0].inv_description + '</p></div>'
+    display += '<div id="vehicle-details-color"><p>Color: ' + data[0].inv_color + '</p></div>'
+    display += '<div id="vehicle-details-miles"><p>Miles: ' + data[0].inv_miles.toLocaleString() + '</p></div>'
+    display += '</div>'
+    display += '</div>'
+  } else {
+    display += '<p class="notice">Sorry, no matching vehicles could be found.</p>'
+  }
+  return display
+}
+
+
 
 /* ****************************************
  * Middleware For Handling Errors
