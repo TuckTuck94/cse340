@@ -83,7 +83,7 @@ Util.buildVehicleDisplay = async function(data) {
 }
 
 /* **************************************
-* Build the Managment view HTML
+* Build the Management view HTML
 * *************************************/
 Util.buildManagementView = async function(){
   let body = '<div class="center-container">'
