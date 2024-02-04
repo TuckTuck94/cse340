@@ -82,7 +82,18 @@ Util.buildVehicleDisplay = async function(data) {
   return display
 }
 
-
+/* **************************************
+* Build the Managment view HTML
+* *************************************/
+Util.buildManagementView = async function(){
+  let body = '<div class="center-container">'
+  body += '<div class="form-container">'
+  body += '<a href="/inv/add-classification">Add Classification</a>'
+  body += '<br><a href="/inv/add-inventory">Add Inventory Item</a>'
+  body += '</div>'
+  body += '</div>'
+  return body
+}
 
 /* ****************************************
  * Middleware For Handling Errors
