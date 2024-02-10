@@ -1,4 +1,4 @@
-<!-- Check for a heading and display a heading and title if they exist -->
+<!-- Check for a heading and display a heading and title if exists -->
 <% if (errors) { %>
     <ul class="notice">
    <% errors.array().forEach(error => { %>
@@ -16,11 +16,9 @@
 <%- messages() %>
 <div class="center-container">
   <div class="form-container">
-    <form action="/inv/add-inventory" method="post">
+    <form action="/inv/update/" method="post" id="updateForm">
       <label for="inv_classification">Classification:</label>
-      <select id="classification_id" name="classification_id" required>
         <%- dropDown %>
-      </select>
       <br>
       <label for="inv_make">Make:</label>
       <input type="text" id="inv_make" name="inv_make" value="<%- locals.inv_make %>" required>
@@ -48,7 +46,12 @@
       <label for="inv_color">Color:</label>
       <input type="text" id="inv_color" name="inv_color" placeholder="Silver" pattern="^[a-zA-Z\s]+$" value="<%- locals.inv_color %>" required >
       <br>
-      <button type="submit">Submit</button>
+      <button type="submit" disabled>Update Vehicle</button>
+      <input type="hidden" name="inv_id"
+      <% if(locals.inv_id) { %> value="<%= locals.inv_id %>"
+      <% } %>>
+
     </form>
   </div>
 </div>
+<script src="../../js/inv-update.js"></script>
