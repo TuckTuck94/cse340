@@ -1,5 +1,7 @@
 const invModel = require("../models/inventory-model")
+const accountModel = require("../models/account-model")
 const Util = {}
+
 const jwt = require("jsonwebtoken")
 require("dotenv").config()
 
@@ -28,15 +30,14 @@ Util.getNav = async function (req, res, next) {
 
 /* **************************************
 * Build the classification view HTML
-* *************************************/
+* ************************************ */
 Util.buildClassificationGrid = async function(data){
-  let grid = ""
+  let grid
   if(data.length > 0){
-    grid += '<div id="inv-container">'
+    grid = '<ul id="inv-display">'
     data.forEach(vehicle => { 
-      let link = '../../inv/detail/' + vehicle.inv_id
-      grid += '<div class="inv-display" id="inv' + vehicle.inv_id + '">'
-      grid += '<a href="'+link
+      grid += '<li>'
+      grid +=  '<a href="../../inv/detail/'+ vehicle.inv_id 
       + '" title="View ' + vehicle.inv_make + ' '+ vehicle.inv_model 
       + 'details"><img src="' + vehicle.inv_thumbnail 
       +'" alt="Image of '+ vehicle.inv_make + ' ' + vehicle.inv_model 
@@ -48,87 +49,71 @@ Util.buildClassificationGrid = async function(data){
       + vehicle.inv_make + ' ' + vehicle.inv_model + ' details">' 
       + vehicle.inv_make + ' ' + vehicle.inv_model + '</a>'
       grid += '</h2>'
-      grid += '<span class="price">$' 
+      grid += '<span>$' 
       + new Intl.NumberFormat('en-US').format(vehicle.inv_price) + '</span>'
       grid += '</div>'
-      grid += '</div>'
+      grid += '</li>'
     })
-    grid += '</div>'
+    grid += '</ul>'
   } else { 
     grid += '<p class="notice">Sorry, no matching vehicles could be found.</p>'
   }
   return grid
 }
 
-/* **************************************
+/* ****************************************
 * Build the inventory view HTML
-* ************************************ */
-Util.buildInventoryItem = async function(invitem){
-  let item = ""
-  if(invitem.length > 0){
-    let data = invitem[0]
-      item += '<div id="invWrapper">'
-      item += '<div id="invItem_Image">'
-      item +=  '<img src="' + data.inv_image 
-      +'" class="polaroid" alt="Image of '+ data.inv_color + ' ' + data.inv_make + ' ' + data.inv_model 
-      +' on CSE Motors" /></div>'
-      
-      item += '<div id="invItem_Details">'
-      item += '<h2>'
-      item += data.inv_year + " - " + data.inv_make + ' ' + data.inv_model + ' - ' + data.inv_color 
-      item += '</h2>'
-      item += '<p>' + data.inv_description + '</p>'
-
-      item += '<p><b>Make          :</b> ' + data.inv_make + '</p>'
-      item += '<p><b>Model         :</b> ' + data.inv_model + '</p>'
-      item += '<p><b>Year          :</b> ' + data.inv_year + '</p>'
-      item += '<p><b>Milage        :</b> ' + data.inv_miles.toLocaleString() + '</p>'
-      item += '<p><b>Color         :</b> <span style="display: inline-block; border: 1px solid black; width: 16px; background-color: ' + data.inv_color + ';">&nbsp</span> ' + data.inv_color + '</p>'
-      item += '<p class="price">$' + new Intl.NumberFormat('en-US').format(data.inv_price) + '</p>'
-      item += '</div>'
-
-      item += '</div>'
-
+ **************************************** */
+Util.buildDetailGrid = async function(data){
+  let grid
+  if(data.length > 0) {
+    grid = '<div id="detail-grid">'
+    data.forEach(vehicle => {
+    //   grid += "<h1>" + vehicle.inv_model + "</h1>"
+      grid += "<img src=" + vehicle.inv_image + " alt=\"Image of " + vehicle.inv_make + " " + vehicle.inv_model + " on CSE Motors\" />"
+      grid += "<table>"
+      grid += "<tr>"
+      grid += "<td>Color:</td>"
+      grid += "<td>" + vehicle.inv_color + "</td>"
+      grid += "</tr>"
+      grid += "<tr>"
+      grid += "<td>Mileage:</td>"
+      grid += "<td>" + new Intl.NumberFormat("en-US").format(vehicle.inv_miles) + "</td>"
+      grid += "</tr>"
+      grid += "<tr>"
+      grid += "<td>Description:</td>"
+      grid += "<td>" + vehicle.inv_description + "</td>"
+      grid += "</tr>"
+      grid += "<tr>"
+      grid += "<td>Price:</td>"
+      grid += "<td>$" + new Intl.NumberFormat("en-US").format(vehicle.inv_price) + "</td>"
+      grid += "</tr>"
+      grid += "</table>"
+    })
+    grid += "</div>"
   } else { 
-    item += '<p class="notice">Sorry, no matching vehicles could be found.</p>'
+    grid += '<p class="notice">Sorry, no matching vehicle could be found.</p>'
   }
-  return item
+  return grid
 }
 
 /* **************************************
-* Build the Managment view HTML
-* *************************************/
-// Util.buildManagementView = async function(){
-  // let body = '<div class="center-container">'
-  // body += '<div class="form-container">'
-  // body += '<a href="/inv/add-classification">Add Classification</a>'
-  // body += '<br><a href="/inv/add-inventory">Add Inventory Item</a>'
-  // body += '<h2>Manage Inventory</h2>'
-  // body += '<p>Select a classification from the list below to see items belonging to that classification.</p>'
-  // <%- classificationSelect %>
-  // body += '</div>'
-  // body += '</div>'
-  // return body
-// }
-
-/* **************************************
-* Build the categories dropdown
-* *************************************/
-Util.buildClassificationList = async function buildClassificationList(activeItem = null) {
-  let classList = await invModel.getClassifications()
-  dropDown = '<select id="classification_id" name="classification_id" required>'
-  dropDown += '<option value="0" disabled>Select a classification...</option>'
-  classList.rows.forEach(category => {
-    if (parseInt(category.classification_id) === parseInt(activeItem)) {
-      dropDown += '<option value="' + category.classification_id + '" selected>' + category.classification_name + '</option>'
-    } else {  
-      console.log("didnt find it!")
-      dropDown += '<option value="' + category.classification_id + '">' + category.classification_name + '</option>'
-    }
+* Build a dynamic drop-down select list
+* ************************************ */
+Util.selectList = async function (req, res, next) {
+  let data = await invModel.getClassifications()
+  let list = '<label class="lbl-properties">Classification: '
+  list += '<select class="lbl-properties" id="classification_id" name="classification_id" required>'
+  list += '<option value="">Choose a classification</option>'
+  data.rows.forEach((row) => {
+      list += '<option value="' + row.classification_id
+      list += '">' + row.classification_name + '</option>'
   })
-  dropDown += '</select>'
-  return dropDown
+  list += '</select>'
+  list += '</label>'
+  return list
 }
+
 
 /* ****************************************
  * Middleware For Handling Errors
@@ -136,8 +121,6 @@ Util.buildClassificationList = async function buildClassificationList(activeItem
  * General Error Handling
  **************************************** */
 Util.handleErrors = fn => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next)
-
-
 /* ****************************************
 * Middleware to check token validity
 **************************************** */
@@ -159,18 +142,109 @@ Util.checkJWTToken = (req, res, next) => {
   } else {
    next()
   }
- }
+}
 
 /* ****************************************
+* Middleware to check employee or admin for management view/process access
+**************************************** */
+Util.checkManagment = (req, res, next) => {
+  if (res.locals.loggedin && (res.locals.accountData.account_type == "Employee" || req.locals.accountData.account_type == "Admin")) {
+    next ()
+  } else {
+    if (!res.locals.loggedin) {
+      req.flash('notice', `Please log in.`)
+      return res.redirect("/account/login")
+    } else {       
+      return res.redirect('/')
+    }
+  }
+}
+
+Util.checkManagmentLogin = (isLoggedIn, accountType) => {
+  let managementGrid
+  
+  if (isLoggedIn && (accountType === "Admin" || accountType === "Employee")) {
+    managementGrid = '<h2> Inventory Management </h2>'
+    managementGrid += '<a id="inv-management-button" href="../../inv/" title="Inventory Management View "><h3>Manage Inventory</h3></a>'
+  }else{
+    managementGrid = ''
+  }
+  return managementGrid
+}
+
+ 
+ /* ****************************************
  *  Check Login
  * ************************************ */
-Util.checkLogin = (req, res, next) => {
+ Util.checkLogin = (req, res, next) => {
   if (res.locals.loggedin) {
     next()
   } else {
     req.flash("notice", "Please log in.")
     return res.redirect("/account/login")
   }
- }
+}
+
+
+/* ****************************************
+ *  build the account view to include the reviews
+ * ************************************ */
+Util.buildAccountReviewsGrid = async function(data) {
+  let grid = ""
+  if (data.length > 0 ) {
+    for (const review of data) {
+      const accountData = await accountModel.getAccountById(review.account_id);
+      const screen_name = accountData.account_firstname + " " + accountData.account_lastname;
+
+      grid += "<table>";
+      grid += "<tr>";
+      grid += "<td>" + screen_name + ":</td>";
+      grid += "</tr>";
+      grid += "<tr>";
+      grid += "<td>" + review.review_text + "</td>";
+      grid += "</tr>";
+      grid += "<tr>";
+      grid += "<td>" + review.review_date + "</td>";
+      grid += "</tr>";
+      grid += "<tr>";
+      grid += "<td><a href=\"/account/update-review/" + review.review_id + "\">Update Review</a> <a href=\"/account/delete-review/" + review.review_id + "\">Delete Review</a></td>";
+      grid += "</tr>";
+      grid += "</table>";
+    }
+    grid += " "
+  } else { 
+    grid += '<p class="notice">Sorry, no matching vehicle could be found.</p>'
+  }
+  return grid
+}
+
+/* ****************************************
+ *  build the view to include the reviews to the inv details view
+ * ************************************ */
+Util.invReviewsGrid = async function(data){
+  let grid = ""
+  if (data.length > 0) {
+    for (const review of data) {
+      const accountData = await accountModel.getAccountById(review.account_id);
+      const screen_name = accountData.account_firstname + " " + accountData.account_lastname;
+      
+      grid += "<table>";
+      grid += "<tr>";
+      grid += "<td>" + screen_name + ":</td>";
+      grid += "</tr>";
+      grid += "<tr>";
+      grid += "<td>" + review.review_text + "</td>";
+      grid += "</tr>";
+      grid += "<tr>";
+      grid += "<td>" + review.review_date + "</td>";
+      grid += "</tr>";
+      grid += "</table>";
+    }
+    grid += "</section>"
+  } else { 
+    grid += '<p class="notice">Sorry, no matching vehicle could be found.</p>'
+  }
+  return grid
+}
 
 module.exports = Util

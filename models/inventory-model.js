@@ -1,81 +1,163 @@
-const pool = require('../database/')
+const pool = require("../database/")
+
+/* ***************************
+ *  Get all classification data
+ * ************************** */
+async function getClassifications(){
+  return await pool.query("SELECT * FROM public.classification ORDER BY classification_name")
+}
+
+/* ***************************
+ *  Get all inventory items and classification_name by classification_id
+ * ************************** */
+async function getInventoryByClassificationId(classification_id) {
+  try {
+    const data = await pool.query(
+      `SELECT * FROM public.inventory AS i 
+      JOIN public.classification AS c 
+      ON i.classification_id = c.classification_id 
+      WHERE i.classification_id = $1`,
+      [classification_id]
+    )
+    return data.rows
+  } catch (error) {
+    console.error("getclassificationsbyid error " + error)
+  }
+}
+
+/* ***************************
+ *  Get all details for an item by inventory_id
+ * ************************** */
+async function getDetailsByInventoryId(inventory_id) {
+  try {
+    const data = await pool.query(
+      `SELECT * FROM public.inventory AS i 
+      JOIN public.classification AS c 
+      ON i.classification_id = c.classification_id 
+      WHERE inv_id = $1`,
+      [inventory_id]
+    )
+    return data.rows
+  } catch (error) {
+    console.error("getinventorybyid error " + error)
+  }
+}
+
+/* ***************************
+ *  Get all reviews for an item by inv_id
+ * ************************** */
+async function getReviewsByInventoryId(inventory_id) {
+  try {
+    const data = await pool.query(
+      `SELECT * FROM public.review AS i 
+      WHERE i.inv_id = $1`,
+      [inventory_id]
+    )
+    return data.rows
+  } catch (error) {
+    console.error("getreviewsbyinventoryid error " + error)
+  }
+}
+
+
+/* ***************************
+ *  add a new reviews
+ * ************************** */
+async function addReview(review_text, inv_id, account_id) {
+  try {
+    const sql = "INSERT INTO public.review (review_text, review_date, inv_id, account_id) VALUES ($1, CURRENT_TIMESTAMP, $2, $3) RETURNING *";
+    return pool.query(sql, [review_text, inv_id, account_id]);
+  }catch (error) {
+    return error.message
+  }
+}
+
 
 /* *****************************
-*   Register new account
+*   add new classification
 * *************************** */
-async function registerAccount(account_firstname, account_lastname, account_email, account_password){
-    try {
-      const sql = "INSERT INTO account (account_firstname, account_lastname, account_email, account_password, account_type) VALUES ($1, $2, $3, $4, 'Client') RETURNING *"
-      return await pool.query(sql, [account_firstname, account_lastname, account_email, account_password])
-    } catch (error) {
+async function addClassification(classification_name) {
+  try {
+      const sql = "INSERT INTO classification (classification_name) VALUES ($1) RETURNING *"
+      return await pool.query(sql, [classification_name])
+  } catch (error) {
       return error.message
-    }
-  }
-
-/* **********************
- *   Check for existing email
- * ********************* */
-async function checkExistingEmail(account_email){
-  try {
-    const sql = "SELECT * FROM account WHERE account_email = $1"
-    const email = await pool.query(sql, [account_email])
-    //return email.rowCount
-    return true
-  } catch (error) {
-    console.error(error.message)
-    return false
   }
 }
 
-/* *****************************
-* Return account data using email address
-* ***************************** */
-async function getAccountByEmail(account_email) {
-  try {
-    const result = await pool.query(
-      'SELECT account_id, account_firstname, account_lastname, account_email, account_type, account_password FROM account WHERE account_email = $1',
-      [account_email])
-      console.log("login found")
-    return result.rows[0]
-  } catch (error) {
-    return new Error("No matching email found")
-  }
-}
-/* *****************************
-* Return account data using id
-* ***************************** */
-async function getAccountByID(account_id) {
-  try {
-    const result = await pool.query(
-      'SELECT account_id, account_firstname, account_lastname, account_email, account_type, account_password FROM account WHERE account_id = $1',
-      [account_id])
-      console.log("login found")
-    return result.rows[0]
-  } catch (error) {
-    return new Error("No matching account ID found")
-  }
-}
-/* *****************************
-*   Update account
-* *************************** */
-async function updateAccount(account_id, account_firstname, account_lastname, account_email){
-  try {
-    //const sql = `UPDATE account SET account_firstname = '${account_firstname}', account_lastname = '${account_lastname}', account_email = '${account_email}' WHERE account_id = ${account_id}`
-    return await pool.query(`UPDATE account SET account_firstname = $2, account_lastname = $3, account_email = $4 WHERE account_id = $1`, [account_id, account_firstname, account_lastname, account_email])
-  } catch (error) {
+async function checkExistingClassification(classification_name){
+  try{
+    const sql = "SELECT * FROM classification WHERE classification_name = $1"
+    const classficationName = await pool.query(sql, [classification_name])
+    return classficationName.rowCount
+  }catch (error) {
     return error.message
   }
 }
 
 /* *****************************
-*   Change Password
+*   add new Inventory
 * *************************** */
-async function changePassword(account_password, account_id){
+async function addInventory(classification_id, inv_make, inv_model, inv_description, inv_image, inv_thumbnail, inv_price, inv_year, inv_miles, inv_color) {
   try {
-    const sql = `UPDATE account SET account_password = '${account_password}' WHERE account_id = ${account_id}`
-    return await pool.query(sql)
+      const sql = "INSERT INTO inventory (classification_id, inv_make, inv_model, inv_description, inv_image, inv_thumbnail, inv_price, inv_year, inv_miles, inv_color) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *"
+      return pool.query(sql, [classification_id, inv_make, inv_model, inv_description, inv_image, inv_thumbnail, inv_price, inv_year, inv_miles, inv_color])
   } catch (error) {
-    return error.message
+      return error.message
   }
 }
-  module.exports = { registerAccount, checkExistingEmail, getAccountByEmail, updateAccount, changePassword, getAccountByID}
+
+/* ***************************
+ *  Update Inventory Data
+ * ************************** */
+async function updateInventory(
+  inv_id,
+  inv_make,
+  inv_model,
+  inv_description,
+  inv_image,
+  inv_thumbnail,
+  inv_price,
+  inv_year,
+  inv_miles,
+  inv_color,
+  classification_id
+) {
+  try {
+    const sql =
+      "UPDATE public.inventory SET inv_make = $1, inv_model = $2, inv_description = $3, inv_image = $4, inv_thumbnail = $5, inv_price = $6, inv_year = $7, inv_miles = $8, inv_color = $9, classification_id = $10 WHERE inv_id = $11 RETURNING *"
+    const data = await pool.query(sql, [
+      inv_make,
+      inv_model,
+      inv_description,
+      inv_image,
+      inv_thumbnail,
+      inv_price,
+      inv_year,
+      inv_miles,
+      inv_color,
+      classification_id,
+      inv_id
+    ])
+    return data.rows[0]
+  } catch (error) {
+    console.error("model error: " + error)
+  }
+}
+
+/* *****************************
+*  Delete Inventory Item,  delete vehicle
+* *************************** */
+async function deleteInventory(inv_id) {
+  try {
+    const sql = 'DELETE FROM inventory WHERE inv_id = $1'
+    const data = await pool.query(sql, [inv_id])
+  return data
+  } catch (error) {
+    new Error("Delete Inventory Error")
+  }
+}
+
+
+
+module.exports = {getClassifications, getInventoryByClassificationId, getDetailsByInventoryId, addClassification, checkExistingClassification, addInventory, updateInventory, deleteInventory, getReviewsByInventoryId, addReview };
